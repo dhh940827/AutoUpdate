@@ -1,0 +1,19 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.dhh.mylibrary">
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <application >
+        <service android:name="com.dhh.mylibrary.DownLoadService" android:enabled="true">
+
+        </service>
+        
+        <provider
+            android:authorities="${applicationId}.auto.provider"
+            android:name=".CusFileProvider"
+            android:grantUriPermissions="true"
+            android:exported="false">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/updatefile"/>
+        </provider>
+    </application>
+</manifest>
