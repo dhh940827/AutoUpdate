@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.IBinder;
 import android.support.v4.content.FileProvider;
@@ -22,6 +23,7 @@ public class CusServiceConnection implements ServiceConnection {
     private TaskInfo info;
     private ProgressBarDialog dialog;
     private DownLoadService downLoadService;
+    private SharedPreferences preferences;
 
     public interface OnClickListener {
         void stop();
@@ -38,6 +40,7 @@ public class CusServiceConnection implements ServiceConnection {
 
     public CusServiceConnection(Context context, String url,TaskInfo info){
         mContext = context;
+        preferences = mContext.getSharedPreferences("congif",Context.MODE_PRIVATE);
         this.url = url;
         this.info = info;
     }
@@ -45,6 +48,7 @@ public class CusServiceConnection implements ServiceConnection {
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
         downLoadService = ((DownLoadService.MsgBinder)service).getService();
+        info.setComletedLength(getCompletedLen());
         info.setContentLen(0l);
         info.setStop(false);
         showProgressBar();
@@ -127,6 +131,9 @@ public class CusServiceConnection implements ServiceConnection {
             @Override
             public void cancel() {
                 // 记录info的completedLength
+                info.setStop(true);
+                wirteCompletedLen();
+                dimissDialog();
             }
         });
         dialog.show(((Activity)mContext).getFragmentManager(),"progressbar");
@@ -136,6 +143,16 @@ public class CusServiceConnection implements ServiceConnection {
         if(dialog != null){
             dialog.dismiss();
         }
+    }
+
+    private void wirteCompletedLen(){
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putLong("completedLength",info.getComletedLength());
+        editor.commit();
+    }
+
+    private Long getCompletedLen(){
+        return preferences.getLong("completedLength",0l);
     }
 
 }
