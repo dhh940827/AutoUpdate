@@ -69,7 +69,7 @@ public class DownLoadRunable implements Runnable {
             while (!isStop && (length = bIS.read(buff)) != -1){
                 raf.write(buff,0,length);
                 mInfo.setComletedLength(mInfo.getComletedLength() + length);
-                mCall.setProgress((int) ((mInfo.getComletedLength() + length) * 100 / mInfo.getContentLen()));
+                mCall.setProgress((int) ((mInfo.getComletedLength()  * 100) / mInfo.getContentLen()));
             }
             if(length == -1){
                 Log.e("下载结束","yes");

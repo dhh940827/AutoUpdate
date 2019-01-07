@@ -34,4 +34,9 @@ public class DownLoadService extends Service {
         new Thread(runable).start();
     }
 
+    public void goAgain(){
+        if(runable != null)
+            new Thread(runable).start();
+    }
+
 }

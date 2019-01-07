@@ -21,6 +21,7 @@ public class CusServiceConnection implements ServiceConnection {
     private String url;
     private TaskInfo info;
     private ProgressBarDialog dialog;
+    private DownLoadService downLoadService;
 
     public interface OnClickListener {
         void stop();
@@ -43,7 +44,7 @@ public class CusServiceConnection implements ServiceConnection {
 
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
-        DownLoadService downLoadService = ((DownLoadService.MsgBinder)service).getService();
+        downLoadService = ((DownLoadService.MsgBinder)service).getService();
         info.setContentLen(0l);
         info.setStop(false);
         showProgressBar();
@@ -115,6 +116,7 @@ public class CusServiceConnection implements ServiceConnection {
             @Override
             public void goAgain() {
                 info.setStop(false);
+                downLoadService.goAgain();
             }
 
             @Override
@@ -124,7 +126,7 @@ public class CusServiceConnection implements ServiceConnection {
 
             @Override
             public void cancel() {
-
+                // 记录info的completedLength
             }
         });
         dialog.show(((Activity)mContext).getFragmentManager(),"progressbar");
