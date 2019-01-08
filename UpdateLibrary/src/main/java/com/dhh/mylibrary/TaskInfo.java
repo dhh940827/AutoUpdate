@@ -11,7 +11,16 @@ public class TaskInfo {
     private String fileName;
     private String filePath;
     private String downLoadUrl;
+    private String app_name;
     private volatile Boolean isStop;
+
+    public String getApp_name() {
+        return app_name;
+    }
+
+    public void setApp_name(String app_name) {
+        this.app_name = app_name;
+    }
 
     public Boolean getStop() {
         return isStop;

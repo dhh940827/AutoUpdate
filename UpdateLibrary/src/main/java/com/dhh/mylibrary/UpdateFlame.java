@@ -46,4 +46,8 @@ public class UpdateFlame {
     public void setFilePath(String path){
         info.setFilePath(path);
     }
+
+    public void setAppName(String appName){
+        info.setApp_name(appName);
+    }
 }

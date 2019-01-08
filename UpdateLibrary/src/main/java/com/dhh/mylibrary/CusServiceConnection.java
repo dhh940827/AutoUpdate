@@ -1,16 +1,23 @@
 package com.dhh.mylibrary;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.content.FileProvider;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.RemoteViews;
 
 import java.io.File;
+import java.nio.channels.Channel;
 
 /**
  * Created by 79393 on 2018/12/15.
@@ -24,6 +31,10 @@ public class CusServiceConnection implements ServiceConnection {
     private ProgressBarDialog dialog;
     private DownLoadService downLoadService;
     private SharedPreferences preferences;
+    private RemoteViews views;
+    private NotificationManager nm;
+    private static final String CHANNELID = "update";
+    private static final int ID = 1;
 
     public interface OnClickListener {
         void stop();
@@ -41,6 +52,8 @@ public class CusServiceConnection implements ServiceConnection {
     public CusServiceConnection(Context context, String url,TaskInfo info){
         mContext = context;
         preferences = mContext.getSharedPreferences("congif",Context.MODE_PRIVATE);
+        nm = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+        views = new RemoteViews(mContext.getPackageName(),R.layout.remoteview_layout);
         this.url = url;
         this.info = info;
     }
@@ -56,7 +69,8 @@ public class CusServiceConnection implements ServiceConnection {
 
             @Override
             public void onDownLoadStart() {
-
+                // 显示通知在导航栏
+                showNotification();
             }
 
             @Override
@@ -78,6 +92,33 @@ public class CusServiceConnection implements ServiceConnection {
             }
         });
     }
+
+    /**
+     * 展示通知
+     */
+    private void showNotification() {
+        Notification.Builder builder;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            builder = new Notification.Builder(mContext,CHANNELID);
+        else
+            builder = new Notification.Builder(mContext);
+        views.setTextViewText(R.id.tv_appname,info.getApp_name());
+        views.setTextViewText(R.id.tv_isfinished,mContext.getResources().getString(R.string.is_loading));
+        views.setTextViewText(R.id.tv_pencent,mContext.getResources().getString(R.string.zero_percent));
+        views.setTextViewText(R.id.tv_cancelorinstall,mContext.getResources().getString(R.string.cancel));
+        views.setProgressBar(R.id.pb_noti_loaded,100,0,true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+            builder.setCustomContentView(views);
+        else
+            builder.setContent(views);
+        builder.setAutoCancel(false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            nm.notify(ID,builder.build());
+        }
+        else
+            nm.notify(ID,builder.getNotification());
+    }
+
 
     /**
      * auto install the apk
