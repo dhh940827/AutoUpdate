@@ -35,12 +35,12 @@ public class DownLoadRunable implements Runnable {
         byte[] buff = new byte[1024 * 8];
         int length = 0;
         int allLenght = 0; // 全部长度
-        Boolean isStop = mInfo.getStop();
         File fileCat = new File(mInfo.getFilePath());
         if(!fileCat.exists()){
             fileCat.mkdir();
         }
         File file = new File(mInfo.getFilePath() + File.separator + mInfo.getFileName());
+        mCall.onDownLoadStart();
         try {
             raf = new RandomAccessFile(file , "rwd");
             url = new URL(mURL);
@@ -55,26 +55,22 @@ public class DownLoadRunable implements Runnable {
             }
             else {
                 // 一开始记录文件长度
-                Log.e("content-lenth",urlConnection.getHeaderField("content-length"));
                 mInfo.setContentLen(Long.valueOf(urlConnection.getHeaderField("content-length")));
                 mInfo.setComletedLength(0l);
             }
-            mCall.onDownLoadStart();
             urlConnection.connect();
             bIS = new BufferedInputStream(urlConnection.getInputStream());
             // 移动 RandomAccessFile
             raf.seek(mInfo.getComletedLength());
-            Log.e("写入中","yes");
-            mCall.onDownLoadStart();
-            while (!isStop && (length = bIS.read(buff)) != -1){
+            while (!mInfo.getStop() && (length = bIS.read(buff)) != -1){
                 raf.write(buff,0,length);
                 mInfo.setComletedLength(mInfo.getComletedLength() + length);
                 mCall.setProgress((int) ((mInfo.getComletedLength()  * 100) / mInfo.getContentLen()));
             }
             if(length == -1){
-                Log.e("下载结束","yes");
                 mCall.onDownLoadFinish();
             }
+            bIS.close();
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {

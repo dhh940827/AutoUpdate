@@ -32,11 +32,16 @@ public class UpdateFlame {
         if(info.getFileName().equals("") || info.getFilePath().equals("")){
             throw new Exception("value is empty!");
         }
-        conn = new CusServiceConnection(context,url,info);
+        conn = new CusServiceConnection(context, url, info, new CusServiceConnection.OnCancelListener() {
+            @Override
+            public void oncancal() {
+                unBindService();
+            }
+        });
     }
 
-    public void unBindService(Context context){
-        context.unbindService(conn);
+    public void unBindService(){
+        mContext.unbindService(conn);
     }
 
     public void setFileName(String name){
@@ -49,5 +54,9 @@ public class UpdateFlame {
 
     public void setAppName(String appName){
         info.setApp_name(appName);
+    }
+
+    public void setAppIcon(int ic_launcher) {
+
     }
 }

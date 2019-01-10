@@ -3,6 +3,7 @@ package com.dhh.mylibrary;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -44,39 +45,32 @@ public class ProgressBarDialog extends DialogFragment {
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        Log.e("onActivityCreated","yes");
-        mProgressBar = view.findViewById(R.id.pb_load);
-        tv_stopOrStart = view.findViewById(R.id.tv_stop);
-        tv_stopOrStart.setTag(STOP);
-        tv_cancel = view.findViewById(R.id.tv_stop);
-        tv_percent = view.findViewById(R.id.tv_percent);
-        tv_gottoback = view.findViewById(R.id.tv_gotoback);
-    }
-
-    public void setProgressBarProgress(int progress){
-        mProgressBar.setProgress(progress);
-        tv_percent.setText(progress + "%");
+    public void onStop() {
+        super.onStop();
+        if(mListener != null)
+            mListener.cancel();
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if(mListener != null)
-            setListen();
-    }
-
-    private void setListen(){
-        view.findViewById(R.id.tv_stop).setOnClickListener(new View.OnClickListener() {
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mProgressBar = view.findViewById(R.id.pb_load);
+        tv_stopOrStart = view.findViewById(R.id.tv_stopOrgoagain);
+        tv_stopOrStart.setTag(STOP);
+        tv_cancel = view.findViewById(R.id.tv_stopOrgoagain);
+        tv_percent = view.findViewById(R.id.tv_percent);
+        tv_gottoback = view.findViewById(R.id.tv_gotoback);
+        view.findViewById(R.id.tv_stopOrgoagain).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if((int)tv_stopOrStart.getTag() == STOP){
+                    tv_stopOrStart.setTag(GOAGAIN);
                     mListener.stop();
                     tv_stopOrStart.setText("继续");
                 }
                 else {
                     mListener.goAgain();
+                    tv_stopOrStart.setTag(STOP);
                     tv_stopOrStart.setText("暂停");
                 }
             }
@@ -94,6 +88,16 @@ public class ProgressBarDialog extends DialogFragment {
                 mListener.cancel();
             }
         });
+    }
+
+    public synchronized void setProgressBarProgress(int progress){
+        mProgressBar.setProgress(progress);
+        tv_percent.setText(progress + "%");
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
     }
 
     public void setListen(final CusServiceConnection.OnClickListener listener){

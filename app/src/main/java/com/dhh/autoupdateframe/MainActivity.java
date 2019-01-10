@@ -2,12 +2,19 @@ package com.dhh.autoupdateframe;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.ContentProvider;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -17,6 +24,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RemoteViews;
 
 import com.dhh.mylibrary.ProgressBarDialog;
 import com.dhh.mylibrary.UpdateFlame;
@@ -27,6 +35,12 @@ import java.io.FileNotFoundException;
 public class MainActivity extends AppCompatActivity {
 
     private UpdateFlame mFlame;
+    private RemoteViews views;
+    private Context mContext;
+    private NotificationManager nm;
+    private static final int ID = 1;
+    private String CHANNEL_ID = "";
+    private Notification notification;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,8 +54,10 @@ public class MainActivity extends AppCompatActivity {
                 autoInstallApk();
             }
         });
-        mFlame = new UpdateFlame(this,"https://https-serve.b0.upaiyun.com/uploads/apps/380/ymtdc_1_v1.0.0_181219115850.apk");
-        mFlame.setFileName("ymtdc.apk");
+        mFlame = new UpdateFlame(this,"https://https-serve.b0.upaiyun.com/uploads/apps/345/yimentong_30_v2.9.30_181102110714.apk");
+        mFlame.setFileName("yimentong.apk");
+        mFlame.setAppName("测试demo");
+        mFlame.setAppIcon(R.mipmap.ic_launcher);
         mFlame.setFilePath(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "AutoUpdate");
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,6 +81,110 @@ public class MainActivity extends AppCompatActivity {
                 dialog.show(MainActivity.this.getFragmentManager(),"progress");
             }
         });
+        mContext = this;
+        views = new RemoteViews(mContext.getPackageName(), com.dhh.mylibrary.R.layout.remoteview_layout);
+        nm = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+        CHANNEL_ID = getPackageName() + ".update";
+        createNotificationChannel();
+        readyNotification();
+        Button button3 = findViewById(R.id.bt_showNotification);
+        button3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showNotification();
+                new Thread(runnable).start();
+            }
+        });
+
+    }
+
+    private Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            showNotification(msg.what);
+        }
+    };
+
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            int rate = 0;
+            while (rate < 100){
+                handler.sendEmptyMessage(rate);
+                rate = rate + 2;
+            }
+        }
+    };
+
+    /**
+     * 更新通知状态
+     * @param progress
+     */
+    private void showNotification(int progress) {
+        if(progress != 100){
+            views.setTextViewText(com.dhh.mylibrary.R.id.tv_isfinished,mContext.getResources().getString(com.dhh.mylibrary.R.string.is_loading));
+            views.setTextViewText(com.dhh.mylibrary.R.id.tv_pencent,progress + "%");
+            views.setTextViewText(com.dhh.mylibrary.R.id.tv_cancelorinstall,mContext.getResources().getString(com.dhh.mylibrary.R.string.cancel));
+        }
+        else {
+            views.setTextViewText(com.dhh.mylibrary.R.id.tv_isfinished,mContext.getResources().getString(com.dhh.mylibrary.R.string.is_finished));
+            views.setTextViewText(com.dhh.mylibrary.R.id.tv_pencent,progress + "%");
+            views.setTextViewText(com.dhh.mylibrary.R.id.tv_cancelorinstall,mContext.getResources().getString(com.dhh.mylibrary.R.string.install));
+        }
+        views.setProgressBar(com.dhh.mylibrary.R.id.pb_noti_loaded,100,progress,false);
+        nm.notify(ID, notification);
+    }
+
+    /**
+     * 构造notification
+     * @return
+     */
+    private void readyNotification(){
+        Notification.Builder builder;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            builder = new Notification.Builder(mContext,CHANNEL_ID);
+        else
+            builder = new Notification.Builder(mContext);
+        builder.setSmallIcon(com.dhh.mylibrary.R.drawable.ic_launcher);
+        builder.setAutoCancel(true);
+        views.setImageViewResource(com.dhh.mylibrary.R.id.iv_appicon, com.dhh.mylibrary.R.drawable.ic_launcher);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+            builder.setCustomContentView(views);
+        else
+            builder.setContent(views);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            notification =  builder.build();
+        }
+        else
+            notification = builder.getNotification();
+    }
+
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "update";
+            String description = "update app";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
+    /**
+     * 展示通知
+     */
+    private void showNotification() {
+        views.setTextViewText(com.dhh.mylibrary.R.id.tv_appname,"appdemo");
+        views.setTextViewText(com.dhh.mylibrary.R.id.tv_isfinished,mContext.getResources().getString(com.dhh.mylibrary.R.string.is_loading));
+        views.setTextViewText(com.dhh.mylibrary.R.id.tv_pencent,mContext.getResources().getString(com.dhh.mylibrary.R.string.zero_percent));
+        views.setTextViewText(com.dhh.mylibrary.R.id.tv_cancelorinstall,mContext.getResources().getString(com.dhh.mylibrary.R.string.cancel));
+        views.setProgressBar(com.dhh.mylibrary.R.id.pb_noti_loaded,100,0,false);
+        nm.notify(ID, notification);
     }
 
     @Override
@@ -90,15 +210,7 @@ public class MainActivity extends AppCompatActivity {
      * auto install the apk
      */
     private void autoInstallApk() {
-//        if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.REQUEST_INSTALL_PACKAGES) !=
-//                PackageManager.PERMISSION_GRANTED){
-//            ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.REQUEST_INSTALL_PACKAGES},234);
-//
-//        }
-//        else {
-            installApk();
-     //   }
-
+        installApk();
     }
 
     private void installApk(){

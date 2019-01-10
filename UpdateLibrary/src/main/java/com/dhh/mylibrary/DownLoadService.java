@@ -29,12 +29,12 @@ public class DownLoadService extends Service {
     }
 
     public void startDownLoad(String url, TaskInfo info, CusServiceConnection.OnServiceCall call){
-        Log.e("服务开始","yes！！！");
         runable = new DownLoadRunable(url,info,call);
         new Thread(runable).start();
     }
 
     public void goAgain(){
+        Log.e("goagain","yes");
         if(runable != null)
             new Thread(runable).start();
     }
