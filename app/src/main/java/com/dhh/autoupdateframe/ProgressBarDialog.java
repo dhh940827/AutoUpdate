@@ -1,12 +1,10 @@
-package com.dhh.mylibrary;
+package com.dhh.autoupdateframe;
 
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +25,17 @@ public class ProgressBarDialog extends DialogFragment {
     private View view;
     private static final int STOP = 1;
     private static final int GOAGAIN = 0;
-    private CusServiceConnection.OnClickListener mListener;
+    private ProgressBarDialog.OnClickListener mListener;
+
+    public interface OnClickListener {
+        void stop();
+
+        void goAgain();
+
+        void gottoback();
+
+        void cancel();
+    }
 
     @Nullable
     @Override
@@ -38,7 +46,7 @@ public class ProgressBarDialog extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        Dialog dialog = new Dialog(getActivity(),R.style.chooseFragmentDialog);
+        Dialog dialog = new Dialog(getActivity(), com.dhh.mylibrary.R.style.chooseFragmentDialog);
         dialog.setCancelable(false);
         dialog.setCanceledOnTouchOutside(false);
         return dialog;
@@ -100,7 +108,7 @@ public class ProgressBarDialog extends DialogFragment {
         super.onAttach(context);
     }
 
-    public void setListen(final CusServiceConnection.OnClickListener listener){
+    public void setListen(OnClickListener listener){
         mListener = listener;
     }
 }

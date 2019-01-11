@@ -18,28 +18,27 @@ public class DownLoadRunable implements Runnable {
 
     private String mURL; //"http://app.sj33333.com/ymtdc"
     private TaskInfo mInfo;
-    private CusServiceConnection.OnServiceCall mCall;
+    private OnServiceRunnableListener mCall;
 
-    DownLoadRunable(String url, TaskInfo info, CusServiceConnection.OnServiceCall call){
-        mURL = url;
+    DownLoadRunable(TaskInfo info, OnServiceRunnableListener call){
+        mURL = info.getDownLoadUrl();
         mInfo = info;
         mCall = call;
     }
 
     @Override
     public void run() {
-        Log.e("下载线程开始","yes");
         URL url;
         BufferedInputStream bIS;
         RandomAccessFile raf;
         byte[] buff = new byte[1024 * 8];
         int length = 0;
-        int allLenght = 0; // 全部长度
         File fileCat = new File(mInfo.getFilePath());
         if(!fileCat.exists()){
             fileCat.mkdir();
         }
         File file = new File(mInfo.getFilePath() + File.separator + mInfo.getFileName());
+        int lastProgress = 0;
         mCall.onDownLoadStart();
         try {
             raf = new RandomAccessFile(file , "rwd");
@@ -58,6 +57,8 @@ public class DownLoadRunable implements Runnable {
                 mInfo.setContentLen(Long.valueOf(urlConnection.getHeaderField("content-length")));
                 mInfo.setComletedLength(0l);
             }
+            lastProgress = (int) ((mInfo.getComletedLength()  * 100) / mInfo.getContentLen());
+            mCall.setProgress(lastProgress);
             urlConnection.connect();
             bIS = new BufferedInputStream(urlConnection.getInputStream());
             // 移动 RandomAccessFile
@@ -65,7 +66,11 @@ public class DownLoadRunable implements Runnable {
             while (!mInfo.getStop() && (length = bIS.read(buff)) != -1){
                 raf.write(buff,0,length);
                 mInfo.setComletedLength(mInfo.getComletedLength() + length);
-                mCall.setProgress((int) ((mInfo.getComletedLength()  * 100) / mInfo.getContentLen()));
+                int progress = (int) ((mInfo.getComletedLength()  * 100) / mInfo.getContentLen());
+                if(progress > lastProgress){
+                    mCall.setProgress(progress);
+                    lastProgress = progress;
+                }
             }
             if(length == -1){
                 mCall.onDownLoadFinish();

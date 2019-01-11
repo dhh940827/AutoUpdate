@@ -11,9 +11,10 @@ import android.util.Log;
  * Created by 79393 on 2018/12/15.
  */
 
-public class DownLoadService extends Service {
+public class DownLoadService extends Service implements OnServiceCallListener {
 
     private DownLoadRunable runable;
+    private TaskInfo info;
 
     public class MsgBinder extends Binder {
 
@@ -28,15 +29,26 @@ public class DownLoadService extends Service {
         return new MsgBinder();
     }
 
-    public void startDownLoad(String url, TaskInfo info, CusServiceConnection.OnServiceCall call){
-        runable = new DownLoadRunable(url,info,call);
+    public void startDownLoad(TaskInfo info, OnServiceRunnableListener call){
+        runable = new DownLoadRunable(info,call);
+        this.info = info;
         new Thread(runable).start();
     }
 
-    public void goAgain(){
-        Log.e("goagain","yes");
+
+    @Override
+    public void goAgain() {
+        if(info != null)
+            info.setStop(false);
+        else
+            return;
         if(runable != null)
             new Thread(runable).start();
+    }
+
+    @Override
+    public void stop(){
+        info.setStop(false);
     }
 
 }
