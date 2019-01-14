@@ -3,10 +3,14 @@ package com.dhh.mylibrary;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
 import android.widget.RemoteViews;
+
+import static android.app.PendingIntent.FLAG_UPDATE_CURRENT;
 
 public class NotificationController {
 
@@ -19,6 +23,8 @@ public class NotificationController {
     private RemoteViews mViews;
     private Notification notification;
     private String CHANNELID = "update";
+    public static final int NOTI_INSTALL = 123;
+    public static final int NOTI_CANCEL = 234;
 
     private NotificationController() {
         mViews = new RemoteViews(mContext.getPackageName(), layoutId);
@@ -37,6 +43,9 @@ public class NotificationController {
             builder = new Notification.Builder(mContext, CHANNELID);
         else
             builder = new Notification.Builder(mContext);
+//        Intent intent = new Intent(mContext,CusReceiver.class);
+//        PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext,NOTI_REC,intent,FLAG_UPDATE_CURRENT);
+//        builder.setContentIntent(pendingIntent);
         builder.setSmallIcon(R.drawable.ic_launcher);
         builder.setAutoCancel(true);
         mViews.setImageViewResource(R.id.iv_appicon, R.drawable.ic_launcher);
@@ -55,6 +64,22 @@ public class NotificationController {
         return controller;
     }
 
+    public NotificationController setCancelListener(int cancel_id){
+        Intent intent = new Intent(mContext,CusReceiver.class);
+        intent.putExtra("type","cancel");
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext,NOTI_CANCEL,intent,FLAG_UPDATE_CURRENT);
+        mViews.setOnClickPendingIntent(cancel_id,pendingIntent);
+        return controller;
+    }
+
+    public NotificationController setInstallListener(int install_id){
+        Intent intent = new Intent(mContext,CusReceiver.class);
+        intent.putExtra("type","install");
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext,NOTI_INSTALL,intent,FLAG_UPDATE_CURRENT);
+        mViews.setOnClickPendingIntent(install_id,pendingIntent);
+        return controller;
+    }
+
     public NotificationController setImageViewResource(int viewId,int resourceId){
         mViews.setImageViewResource(viewId,resourceId);
         return controller;
@@ -66,7 +91,8 @@ public class NotificationController {
     }
 
     public void notifyNotification(){
-            mManager.notify(notificationId,notification);
+
+        mManager.notify(notificationId,notification);
     }
 
     public void cancelNotification(int id){

@@ -15,5 +15,8 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/updatefile"/>
         </provider>
+        <receiver android:name=".CusReceiver">
+
+        </receiver>
     </application>
 </manifest>

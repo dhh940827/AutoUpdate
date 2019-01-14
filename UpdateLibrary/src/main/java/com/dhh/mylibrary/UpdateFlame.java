@@ -48,7 +48,8 @@ public class UpdateFlame {
     }
 
     public void unBindService(){
-        mContext.unbindService(conn);
+        if(conn != null)
+            mContext.unbindService(conn);
     }
 
     /**
