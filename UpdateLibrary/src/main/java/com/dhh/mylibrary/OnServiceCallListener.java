@@ -6,6 +6,4 @@ package com.dhh.mylibrary;
 public interface OnServiceCallListener {
     void stop();
 
-    void goAgain();
-
 }

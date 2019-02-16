@@ -22,29 +22,55 @@ public class UpdateFlame {
     private SharedPreferences preferences;
     private int progress;
     private CusServiceConnection conn;
-    private boolean isFirst = true;
+    private boolean bindService;
+    private static UpdateFlame flame;
 
-    public UpdateFlame(Context context){
+    public UpdateFlame(){
+    }
+
+    public void bind(Context context){
         mContext = context;
         preferences = mContext.getSharedPreferences("congif", Context.MODE_PRIVATE);
-        info = new TaskInfo();
+        BindService();
     }
+
+    public UpdateFlame setTaskInfo(TaskInfoSetting setting){
+        this.setting = setting;
+        return flame;
+    }
+
+    public static UpdateFlame getInstance(){
+        if(flame == null){
+            synchronized (UpdateFlame.class){
+                if(flame == null){
+                    flame = new UpdateFlame();
+                }
+            }
+        }
+        return flame;
+    }
+
 
     /**
      * 开启服务
      */
-    public void  BindService(){
+    private void  BindService(){
         info = getInfo();
         conn = new CusServiceConnection(mContext,info,updateListener);
         Intent intent = new Intent(mContext, DownLoadService.class);
         Log.e("bind","start");
-        if(isFirst){
-            mContext.bindService(intent,conn,Context.BIND_AUTO_CREATE);
-            isFirst = false;
-        }else {
-            Log.e("notice","please do not bind the service more than one");
-           // conn.startDownLoad();
-        }
+//        if(isFirst){
+            // 这里应该弄一个标志位判断
+        bindService = mContext.bindService(intent,conn,Context.BIND_AUTO_CREATE);
+//            isFirst = false;
+//        }else {
+//            Log.e("notice","please do not bind the service more than one");
+//           // conn.startDownLoad();
+//        }
+    }
+
+    public void startDownLoad(){
+        conn.startDownLoad();
     }
 
     public void unBindService(){
@@ -101,8 +127,6 @@ public class UpdateFlame {
 
     public interface OnUpdateControllerListener{
         void getProgress(int progress);
-        void downLoadStart();
-        void downLoadFinish();
     }
 
     /**
@@ -111,30 +135,9 @@ public class UpdateFlame {
      OnUpdateControllerListener updateListener = new OnUpdateControllerListener() {
         @Override
         public void getProgress(int progress) {
-            setProgress(progress);
+            //setProgress(progress);
         }
-
-        @Override
-        public void downLoadStart() {
-            initInfo();
-        }
-
-        @Override
-        public void downLoadFinish() {
-            writeLenAfterFinish();
-            autoInstallApk();
-        }
-
     };
-
-    /**
-     * 初始化Taskinfo
-     */
-    private void initInfo() {
-        info.setComletedLength(getCompletedLen());
-        info.setContentLen(getContentLen());
-        info.setStop(false);
-    }
 
 
     /**
@@ -179,10 +182,6 @@ public class UpdateFlame {
         return progress;
     }
 
-    public void setProgress(int progress) {
-        this.progress = progress;
-    }
-
     /**
      * auto install the apk
      */
@@ -200,7 +199,7 @@ public class UpdateFlame {
         //开始安装
         mContext.startActivity(intent);
         //关闭旧版本的应用程序的进程
-        // android.os.Process.killProcess(android.os.Process.myPid());
+         android.os.Process.killProcess(android.os.Process.myPid());
     }
 
     /**
@@ -231,6 +230,9 @@ public class UpdateFlame {
         if(setting.getUrl() == null)
             throw new NullPointerException("please add th url");
         info.setDownLoadUrl(setting.getUrl());
+        info.setComletedLength(getCompletedLen());
+        info.setContentLen(getContentLen());
+        info.setStop(false);
         return info;
     }
 

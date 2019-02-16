@@ -59,6 +59,11 @@ public class NotificationController {
             notification = builder.getNotification();
     }
 
+    public NotificationController setViewOnClick(int viewId,PendingIntent intent){
+        mViews.setOnClickPendingIntent(viewId,intent);
+        return controller;
+    }
+
     public NotificationController setText(int textId,CharSequence charSequence){
         mViews.setTextViewText(textId,charSequence);
         return controller;

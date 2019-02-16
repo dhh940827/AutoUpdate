@@ -37,16 +37,6 @@ public class DownLoadService extends Service implements OnServiceCallListener {
 
 
     @Override
-    public void goAgain() {
-        if(info != null)
-            info.setStop(false);
-        else
-            return;
-        if(runable != null)
-            new Thread(runable).start();
-    }
-
-    @Override
     public void stop(){
         info.setStop(false);
     }
